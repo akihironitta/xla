@@ -21,6 +21,7 @@ DIST_BUCKET = 'gs://tpu-pytorch/wheels'
 TORCH_WHEEL_TMPL = 'torch-{whl_version}-cp{py_version}-cp{py_version}m-linux_x86_64.whl'
 TORCH_XLA_WHEEL_TMPL = 'torch_xla-{whl_version}-cp{py_version}-cp{py_version}m-linux_x86_64.whl'
 TORCHVISION_WHEEL_TMPL = 'torchvision-{whl_version}-cp{py_version}-cp{py_version}m-linux_x86_64.whl'
+TORCHTEXT_WHEEL_TMPL = 'torchtext-{whl_version}-cp{py_version}-cp{py_version}m-linux_x86_64.whl'
 
 
 def is_gpu_runtime():
@@ -98,6 +99,9 @@ def install_vm(version, apt_packages, is_root=False):
   torchvision_whl = TORCHVISION_WHEEL_TMPL.format(
       whl_version=version.wheels, py_version=version.py_version)
   torchvision_whl_path = os.path.join(dist_bucket, torchvision_whl)
+  torchtext_whl = TORCHTEXT_WHEEL_TMPL.format(
+      whl_version=version.wheels, py_version=version.py_version)
+  torchtext_whl_path = os.path.join(dist_bucket, torchtext_whl)
   apt_cmd = ['apt-get', 'install', '-y']
   apt_cmd.extend(apt_packages)
 
@@ -106,13 +110,15 @@ def install_vm(version, apt_packages, is_root=False):
     apt_cmd.insert(0, 'sudo')
 
   installation_cmds = [
-      [sys.executable, '-m', 'pip', 'uninstall', '-y', 'torch', 'torchvision'],
+      [sys.executable, '-m', 'pip', 'uninstall', '-y', 'torch', 'torchvision', 'torchtext'],
       ['gsutil', 'cp', torch_whl_path, '.'],
       ['gsutil', 'cp', torch_xla_whl_path, '.'],
       ['gsutil', 'cp', torchvision_whl_path, '.'],
+      ['gsutil', 'cp', torchtext_whl_path, '.'],
       [sys.executable, '-m', 'pip', 'install', torch_whl],
       [sys.executable, '-m', 'pip', 'install', torch_xla_whl],
       [sys.executable, '-m', 'pip', 'install', torchvision_whl],
+      [sys.executable, '-m', 'pip', 'install', torchtext_whl],
       apt_cmd,
   ]
   for cmd in installation_cmds:
